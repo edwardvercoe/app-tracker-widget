@@ -209,7 +209,7 @@ async function refreshStats() {
       // Format: Display total users and daily signups if available
       let title = "";
       if (stats?.totalUsers !== undefined) {
-        title = `${stats.totalUsers.toLocaleString()} users`;
+        title = `${stats.totalUsers.toLocaleString()} `;
 
         // Add daily signups with arrow if there are any
         if (stats.dailySignups > 0) {
