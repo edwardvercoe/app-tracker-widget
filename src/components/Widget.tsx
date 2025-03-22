@@ -45,7 +45,7 @@ const Widget: React.FC = () => {
         <button
           onClick={handleRefresh}
           disabled={isRefreshing}
-          className={`w-6 h-6 rounded-full flex items-center justify-center hover:bg-white/10 no-drag ${
+          className={`w-6 h-6 rounded-full flex items-center justify-center hover:bg-white/10 non-draggable cursor-pointer ${
             isRefreshing ? "spinning" : ""
           }`}
           title="Refresh Data"
@@ -57,13 +57,30 @@ const Widget: React.FC = () => {
       <div className="p-3 flex flex-col justify-center items-center">
         {/* Total users */}
         <div className="mb-4 text-center">
-          <h2 className="text-sm font-medium text-white opacity-80 m-0 mb-1">
+          <h2 className="text-sm font-bold text-white opacity-80 m-0 mb-1">
             Total Users
           </h2>
           <div className="text-3xl font-bold text-white">
             {stats?.totalUsers !== undefined
               ? stats.totalUsers.toLocaleString()
               : "--"}
+          </div>
+        </div>
+        {/* daily sign ups */}
+        <div className="text-center">
+          <div>
+            {stats?.dailySignups !== undefined ? (
+              stats.dailySignups == 0 ? (
+                "--"
+              ) : (
+                <span className="text-xl font-bold text-green-500 items-center justify-center flex">
+                  <span className="text-sm">↑</span>
+                  {stats.dailySignups.toLocaleString()}
+                </span>
+              )
+            ) : (
+              "--"
+            )}
           </div>
         </div>
       </div>

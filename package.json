@@ -1,6 +1,6 @@
 {
   "name": "app-tracker-widget",
-  "version": "2.2.0",
+  "version": "1.0.0",
   "main": "dist-electron/main/index.js",
   "description": "App tracker widget for supabase projects.",
   "author": "Ed Vercoe",

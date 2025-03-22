@@ -1,4 +1,12 @@
-import { app, BrowserWindow, shell, ipcMain } from "electron";
+import {
+  app,
+  BrowserWindow,
+  shell,
+  ipcMain,
+  Tray,
+  Menu,
+  screen,
+} from "electron";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -42,26 +50,34 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 let win: BrowserWindow | null = null;
+let tray: Tray | null = null;
 const preload = path.join(__dirname, "../preload/index.mjs");
 const indexHtml = path.join(RENDERER_DIST, "index.html");
 
 async function createWindow() {
+  // Create hidden main window
   win = new BrowserWindow({
-    title: "Main window",
+    title: "App Tracker Widget",
     icon: path.join(process.env.VITE_PUBLIC, "favicon.ico"),
+    frame: false,
+    transparent: true,
+    width: 300, // Set appropriate size for your widget
+    height: 400,
+    show: false, // Window starts hidden
+    skipTaskbar: true, // Hide from taskbar/dock
     webPreferences: {
       preload,
-      // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
-      // nodeIntegration: true,
-
-      // Consider using contextBridge.exposeInMainWorld
-      // Read more on https://www.electronjs.org/docs/latest/tutorial/context-isolation
-      // contextIsolation: false,
     },
   });
 
+  // Attempt to set window to desktop level (only works on macOS)
+  // This will position the window at desktop level - behind regular apps
+  if (process.platform === "darwin") {
+    win.setWindowButtonVisibility(false);
+    win.setAlwaysOnTop(true, "floating", -1); // Try to make it stay behind other windows
+  }
+
   if (VITE_DEV_SERVER_URL) {
-    // #298
     win.loadURL(VITE_DEV_SERVER_URL);
     // Open devTool if the app is not packaged
     win.webContents.openDevTools();
@@ -69,27 +85,71 @@ async function createWindow() {
     win.loadFile(indexHtml);
   }
 
-  // Test actively push message to the Electron-Renderer
-  win.webContents.on("did-finish-load", () => {
-    win?.webContents.send("main-process-message", new Date().toLocaleString());
-  });
-
   // Make all links open with the browser, not with the application
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith("https:")) shell.openExternal(url);
     return { action: "deny" };
   });
 
+  // Hide window when it loses focus
+  win.on("blur", () => {
+    if (win) win.hide();
+  });
+
+  // Test actively push message to the Electron-Renderer
+  win.webContents.on("did-finish-load", () => {
+    win?.webContents.send("main-process-message", new Date().toLocaleString());
+  });
+
   // Auto update
   update(win);
+}
+
+function createTray() {
+  // Create the tray icon - you'll need to create an icon file
+  const iconPath = path.join(process.env.VITE_PUBLIC, "tray-icon.png"); // Create this icon
+  tray = new Tray(iconPath);
+  tray.setToolTip("App Tracker Widget");
+
+  // Create context menu for tray
+  const contextMenu = Menu.buildFromTemplate([
+    { label: "Show App", click: () => showApp() },
+    { type: "separator" },
+    { label: "Refresh Data", click: () => refreshStats() },
+    { type: "separator" },
+    { label: "Quit", click: () => app.quit() },
+  ]);
+
+  // Set context menu on right-click
+  tray.setContextMenu(contextMenu);
+
+  // Show app on left-click
+  tray.on("click", (event, bounds) => showApp(bounds));
+}
+
+// Function to show the app and position it correctly
+function showApp(bounds?: Electron.Rectangle) {
+  if (!win) return;
+
+  if (bounds) {
+    // Position near the tray icon when clicked
+    const { x, y } = bounds;
+    const { width, height } = win.getBounds();
+    const { height: displayHeight } = screen.getPrimaryDisplay().workAreaSize;
+
+    // Position window based on whether tray is at top or bottom
+    const yPosition = y > displayHeight / 2 ? y - height : y;
+
+    win.setPosition(x - width / 2, yPosition);
+  }
+
+  win.show();
+  win.focus();
 }
 
 // Create instances of your services
 const supabaseService = new SupabaseService();
 const statsStore = new Store({ name: "stats" });
-
-// Your existing code for creating windows, etc.
-// ...
 
 // Add this section to set up IPC handlers
 function setupIpcHandlers() {
@@ -130,6 +190,22 @@ async function refreshStats() {
     const stats = await supabaseService.getUserStats();
     statsStore.set("lastStats", stats);
     win?.webContents.send("stats-updated", stats);
+
+    // Update tray title with user stats (macOS only)
+    if (process.platform === "darwin" && tray) {
+      // Format: Display total users and daily signups if available
+      let title = "";
+      if (stats?.totalUsers !== undefined) {
+        title = `${stats.totalUsers.toLocaleString()}`;
+
+        // Add daily signups with arrow if there are any
+        if (stats.dailySignups > 0) {
+          title += ` +${stats.dailySignups.toLocaleString()}`;
+        }
+      }
+      tray.setTitle(title);
+    }
+
     console.log("Stats refreshed successfully:", stats);
     return stats;
   } catch (error) {
@@ -140,8 +216,14 @@ async function refreshStats() {
 
 // Make sure to call setupIpcHandlers when the app is ready
 app.whenReady().then(() => {
+  // Hide dock icon on macOS to make it a proper menu bar app
+  if (process.platform === "darwin") {
+    app.dock.hide();
+  }
+
   createWindow();
-  setupIpcHandlers(); // Add this line
+  createTray();
+  setupIpcHandlers();
 
   // If Supabase is authenticated, start fetching stats
   if (supabaseService.isAuthenticated()) {
@@ -151,8 +233,9 @@ app.whenReady().then(() => {
   }
 });
 
+// Prevent app from closing when all windows are closed
 app.on("window-all-closed", () => {
-  win = null;
+  // On macOS, don't quit the app
   if (process.platform !== "darwin") app.quit();
 });
 

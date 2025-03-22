@@ -19,7 +19,7 @@ function App() {
   }, []);
 
   return (
-    <div className="app-container">
+    <div className="app-container draggable">
       {mode === "widget" ? <Widget /> : <Settings />}
     </div>
   );
