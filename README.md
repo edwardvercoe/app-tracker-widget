@@ -2,17 +2,28 @@
 
 Project forked from `electron-vite-react`
 
+A desktop widget application that helps you monitor your app's user statistics in real-time directly from your system tray.
+
+<img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue.svg">
+<img alt="Electron" src="https://img.shields.io/badge/electron-33.4.6-blue.svg">
+
 [![Required Node.JS >= 14.18.0 || >=16.0.0](https://img.shields.io/static/v1?label=node&message=14.18.0%20||%20%3E=16.0.0&logo=node.js&color=3f893e)](https://nodejs.org/about/releases)
 
-## 👀 Overview
+## 🔍 Overview
 
-📦 Ready out of the box  
-🎯 Based on the official [template-react-ts](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts), project structure will be familiar to you  
-🌱 Easily extendable and customizable  
-💪 Supports Node.js API in the renderer process  
-🔩 Supports C/C++ native addons  
-🐞 Debugger configuration included  
-🖥 Easy to implement multiple windows
+App Tracker Widget is a lightweight desktop application that:
+
+- Connects to your Supabase backend to retrieve user statistics
+- Displays total users and daily signups directly in your system tray
+- Provides real-time updates of your app's growth metrics
+- Works across platforms with a focus on macOS integration
+
+## ✨ Features
+
+- System Tray Integration: View your app's user count and daily signups at a glance
+- Real-time Updates: Automatically refreshes statistics from Supabase
+- Cross-platform: Works on macOS, Windows, and Linux (with enhanced macOS tray support)
+- Auto-updates: Built-in update mechanism to ensure you always have the latest version
 
 ## 🛫 Quick Setup
 
@@ -28,6 +39,9 @@ npm install
 
 # develop
 npm run dev
+
+# Build for production
+npm run build
 ```
 
 ## 📂 Directory structure
@@ -49,35 +63,19 @@ _Files in this folder will be separated from your React application and built in
 └── src                                      Renderer source code, your React application
 ```
 
-<!--
-## 🚨 Be aware
+## ⚙️ Configuration
 
-This template integrates Node.js API to the renderer process by default. If you want to follow **Electron Security Concerns** you might want to disable this feature. You will have to expose needed API by yourself.
+To connect the widget to your Supabase instance:
 
-To get started, remove the option as shown below. This will [modify the Vite configuration and disable this feature](https://github.com/electron-vite/vite-plugin-electron-renderer#config-presets-opinionated).
-
-```diff
-# vite.config.ts
-
-export default {
-  plugins: [
-    ...
--   // Use Node.js API in the Renderer-process
--   renderer({
--     nodeIntegration: true,
--   }),
-    ...
-  ],
-}
-```
--->
+Configure your Supabase credentials in the app settings
+Ensure your Supabase database has the required tables and access permissions
+Restart the application to begin tracking your statistics
 
 ## 🔧 Additional features
 
 1. electron-updater 👉 [see docs](src/components/update/README.md)
 1. playwright
 
-## ❔ FAQ
+## 📄 License
 
-- [C/C++ addons, Node.js modules - Pre-Bundling](https://github.com/electron-vite/vite-plugin-electron-renderer#dependency-pre-bundling)
-- [dependencies vs devDependencies](https://github.com/electron-vite/vite-plugin-electron-renderer#dependencies-vs-devdependencies)
+This project is licensed under the MIT License - see the LICENSE file for details.

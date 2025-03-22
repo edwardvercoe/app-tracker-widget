@@ -124,17 +124,17 @@ function createTray() {
   tray = new Tray(image);
   tray.setToolTip("App Tracker Widget");
 
-  // Create context menu for tray
-  const contextMenu = Menu.buildFromTemplate([
-    { label: "Show App", click: () => showApp() },
-    { type: "separator" },
-    { label: "Refresh Data", click: () => refreshStats() },
-    { type: "separator" },
-    { label: "Quit", click: () => app.quit() },
-  ]);
+  // // Create context menu for tray
+  // const contextMenu = Menu.buildFromTemplate([
+  //   { label: "Show App", click: () => showApp() },
+  //   { type: "separator" },
+  //   { label: "Refresh Data", click: () => refreshStats() },
+  //   { type: "separator" },
+  //   { label: "Quit", click: () => app.quit() },
+  // ]);
 
-  // Set context menu on right-click
-  tray.setContextMenu(contextMenu);
+  // // Set context menu on right-click
+  // tray.setContextMenu(contextMenu);
 
   // Show app on left-click
   tray.on("click", (event, bounds) => showApp(bounds));
