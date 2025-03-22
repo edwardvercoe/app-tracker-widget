@@ -6,6 +6,7 @@ import {
   Tray,
   Menu,
   screen,
+  nativeImage,
 } from "electron";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
@@ -61,8 +62,8 @@ async function createWindow() {
     icon: path.join(process.env.VITE_PUBLIC, "favicon.ico"),
     frame: false,
     transparent: true,
-    width: 300, // Set appropriate size for your widget
-    height: 400,
+    width: 160, // Set appropriate size for your widget
+    height: 160,
     show: false, // Window starts hidden
     skipTaskbar: true, // Hide from taskbar/dock
     webPreferences: {
@@ -106,9 +107,21 @@ async function createWindow() {
 }
 
 function createTray() {
-  // Create the tray icon - you'll need to create an icon file
-  const iconPath = path.join(process.env.VITE_PUBLIC, "tray-icon.png"); // Create this icon
-  tray = new Tray(iconPath);
+  const iconPath = path.join(process.env.VITE_PUBLIC, "tray-icon.png");
+  const fs = require("fs");
+
+  if (!fs.existsSync(iconPath)) {
+    console.error(`Tray icon not found at path: ${iconPath}`);
+  }
+
+  const image = nativeImage.createFromPath(iconPath);
+
+  // For macOS, make it a template image
+  if (process.platform === "darwin") {
+    image.setTemplateImage(true);
+  }
+
+  tray = new Tray(image);
   tray.setToolTip("App Tracker Widget");
 
   // Create context menu for tray
@@ -196,7 +209,7 @@ async function refreshStats() {
       // Format: Display total users and daily signups if available
       let title = "";
       if (stats?.totalUsers !== undefined) {
-        title = `${stats.totalUsers.toLocaleString()}`;
+        title = `${stats.totalUsers.toLocaleString()} users`;
 
         // Add daily signups with arrow if there are any
         if (stats.dailySignups > 0) {
