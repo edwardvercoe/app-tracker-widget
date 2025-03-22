@@ -108,11 +108,6 @@ async function createWindow() {
 
 function createTray() {
   const iconPath = path.join(process.env.VITE_PUBLIC, "tray-icon.png");
-  const fs = require("fs");
-
-  if (!fs.existsSync(iconPath)) {
-    console.error(`Tray icon not found at path: ${iconPath}`);
-  }
 
   const image = nativeImage.createFromPath(iconPath);
 
@@ -121,7 +116,7 @@ function createTray() {
     image.setTemplateImage(true);
   }
 
-  tray = new Tray(image);
+  tray = new Tray(image.resize({ width: 16, height: 16 }));
   tray.setToolTip("App Tracker Widget");
 
   // // Create context menu for tray
